@@ -2,8 +2,9 @@ Docker container for running [Folding@Home](https://foldingathome.org/)
 
 ### Usage
 ```bash
-docker run --rm -it -p7396:7396 johnktims/folding-at-home:latest \
-    --user=Anonymous--team=0 --gpu=false --smp=true
+docker build -t fold .
+
+docker run --rm -p7396:7396 -d fold:latest --user=Anonymous --team=0  --gpu=false --smp=true --power=medium
 ```
 
 The web console is available on port `7396`.
