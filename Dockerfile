@@ -1,22 +1,48 @@
-FROM debian:buster-slim
+FROM debian:buster-slim AS builder
+
+ENV DEBIAN_FRONTEND=noninteractive
 
 ENV FAH_VERSION_MINOR=7.5.1
 ENV FAH_VERSION_MAJOR=7.5
 
-ENV DEBIAN_FRONTEND=noninteractive
+# application configuration params
+RUN apt update && \
+    apt install --no-install-recommends -y bzip2
 
-RUN apt-get update && apt-get install --no-install-recommends -y \
-        curl adduser bzip2 &&\
-        curl --insecure https://download.foldingathome.org/releases/public/release/fahclient/debian-stable-64bit/v${FAH_VERSION_MAJOR}/fahclient_${FAH_VERSION_MINOR}_amd64.deb > /tmp/fah.deb &&\
-        mkdir -p /etc/fahclient/ &&\
-        touch /etc/fahclient/config.xml &&\
-        dpkg --install /tmp/fah.deb &&\
-        apt-get remove -y curl &&\
-        apt-get autoremove -y &&\
-        rm --recursive --verbose --force /tmp/* /var/log/* /var/lib/apt/
+ADD https://download.foldingathome.org/releases/public/release/fahclient/debian-stable-64bit/v${FAH_VERSION_MAJOR}/fahclient_${FAH_VERSION_MINOR}_amd64.deb /tmp/fah.deb
+RUN mkdir -p /etc/fahclient/ && \
+    touch /etc/fahclient/config.xml && \
+    dpkg -i /tmp/fah.deb
+
+RUN apt remove -y curl && \
+    apt autoremove && \
+    dpkg-deb -c /tmp/fah.deb && \
+    rm --recursive --verbose --force /tmp/* /var/log/* /var/lib/apt/
+
+
+FROM debian:stable-slim
+
+ENV WEB_ALLOW=0/0
+ENV ALLOW=0/0
+ENV GPU=false
+ENV SMP=true
+# other available power modes include: light and full
+ENV POWER=medium
+ENV FAH_USER=Anonymous
+ENV FAH_TEAM=0
+
+COPY --from=builder /usr/bin/FAH* /usr/bin/
 
 # Web viewer
-EXPOSE 7396
+EXPOSE 7396 36330
 
-ENTRYPOINT ["FAHClient", "--web-allow=0/0:7396", "--allow=0/0:7396"]
-CMD ["--user=Anonymous", "--team=0", "--gpu=false", "--smp=true", "--power=full"]
+RUN groupadd -g 9999 folder && \
+    useradd -r -b /home -u 9999 -g folder folder
+
+RUN mkdir /home/folder && chown folder:folder /home/folder && chmod 700 /home/folder
+ADD start_folding.sh /home/folder/
+# USER folder
+
+WORKDIR /home/folder
+
+ENTRYPOINT ["/home/folder/start_folding.sh"]
