@@ -14,12 +14,6 @@ RUN mkdir -p /etc/fahclient/ && \
     touch /etc/fahclient/config.xml && \
     dpkg -i /tmp/fah.deb
 
-RUN apt remove -y curl && \
-    apt autoremove && \
-    dpkg-deb -c /tmp/fah.deb && \
-    rm --recursive --verbose --force /tmp/* /var/log/* /var/lib/apt/
-
-
 FROM debian:stable-slim
 
 ENV WEB_ALLOW=0/0
