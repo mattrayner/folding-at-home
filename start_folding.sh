@@ -8,6 +8,12 @@ allow="--allow=${WEB_ALLOW:-0/0}"
 gpu="--gpu=${GPU:-false}"
 smp="--smp=${SMP:-false}"
 
-cmd="/usr/bin/FAHClient ${team} ${user} ${power} ${web_allow} ${allow} ${gpu} ${smp}"
+if [[ -z "${FAH_PASSKEY}" ]]; then
+  passkey=""
+else
+  passkey="--passkey=${FAH_PASSKEY}"
+fi
+
+cmd="/usr/bin/FAHClient ${team} ${user} ${power} ${web_allow} ${allow} ${gpu} ${smp} ${passkey}"
 echo "${cmd} $@"
 exec $cmd $@
