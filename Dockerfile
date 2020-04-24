@@ -16,6 +16,7 @@ RUN mkdir -p /etc/fahclient/ && \
 
 FROM debian:stable-slim
 
+ENV COMMAND_ALLOW=127.0.0.1
 ENV WEB_ALLOW=0/0
 ENV ALLOW=0/0
 ENV GPU=false
